@@ -1,0 +1,7 @@
+subject,ambiguous_labels,treatment,female,n,reference_female,p
+Conflicting emotions,1,excluded,13,14,0.5,0.0018310546875
+Conflicting emotions,1,as female,14,15,0.5,0.0009765625
+Conflicting emotions,1,as male,13,15,0.5,0.00738525390625
+Scientist,1,excluded,9,14,0.32699999999999996,0.01917043184683836
+Scientist,1,as female,10,15,0.32699999999999996,0.00993961739086614
+Scientist,1,as male,9,15,0.32699999999999996,0.0490000350031326

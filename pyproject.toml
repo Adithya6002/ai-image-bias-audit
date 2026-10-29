@@ -1,0 +1,18 @@
+[project]
+name = "bias-audit-stats"
+version = "0.1.0"
+description = "Statistical tests for perceived race/gender bias in AI image generation"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.5.4",
+    "openpyxl>=3.1.5",
+    "pandas>=3.1.0",
+    "pytest>=9.2.0",
+    "python-docx>=1.2.0",
+    "scipy>=1.18.1",
+    "statsmodels>=0.15.0",
+    "tabulate>=0.10.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
