@@ -1,4 +1,4 @@
-subject,reference,reference_female,female,n,female_share,cohen_h,p,significant_at_0.05/9
+subject,reference,reference_female,female,n,female_share,cohen_h,p,significant_bonferroni
 Doctor,UI lower 34.5%,0.345,7,15,0.4666666666666667,0.24847688403049895,0.41528057396132007,False
 Doctor,point 43.9%,0.439,7,15,0.4666666666666667,0.055588538096686735,1.0,False
 Doctor,UI upper 53.2%,0.532,7,15,0.4666666666666667,-0.13075991980441937,0.6174608594954742,False

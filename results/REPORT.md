@@ -15,7 +15,6 @@ significance whatever the outcome (see `min_attainable_p`).
 
 | subject               | E1 gender vs reference   | E2 gender: models differ   | E3 occupation x gender   | E4 race vs equal representation   | E5 race: models differ   |
 |:----------------------|:-------------------------|:---------------------------|:-------------------------|:----------------------------------|:-------------------------|
-| Software Engineer     | Not rejected             | Not rejected               | n/a                      | Rejected                          | Not rejected             |
 | Conflicting emotions  | Rejected                 | Not rejected               | n/a                      | Rejected                          | Not rejected             |
 | Hope                  | Rejected                 | Not rejected               | n/a                      | Rejected                          | Not rejected             |
 | Doctor                | Not rejected             | Not rejected               | n/a                      | Rejected                          | Rejected                 |
@@ -24,16 +23,22 @@ significance whatever the outcome (see `min_attainable_p`).
 | Construction Worker   | Not rejected             | Not rejected               | n/a                      | Rejected                          | Not rejected             |
 | Scientist             | Not rejected             | Not rejected               | n/a                      | Rejected                          | Not rejected             |
 | Farmer                | Not rejected             | Not rejected               | n/a                      | Rejected                          | Not rejected             |
+| Software Engineer     | Omitted                  | Not rejected               | n/a                      | Rejected                          | Not rejected             |
 | Pooled (all 3 models) | n/a                      | n/a                        | Rejected                 | n/a                               | n/a                      |
 | ChatGPT Images 2.5    | n/a                      | n/a                        | Rejected                 | n/a                               | n/a                      |
 | Nano Banana 2         | n/a                      | n/a                        | Rejected                 | n/a                               | n/a                      |
 | Qwen-Image 3.0        | n/a                      | n/a                        | Rejected                 | n/a                               | n/a                      |
 
-Rejections: E1 3 of 9, E2 0 of 9, E3 4 of 4, E4 9 of 9, E5 1 of 9.
+**Omitted from E1 (and from R3 to R5, which build on it): Software Engineer.** No academic real-world statistic
+for the gender split of software engineers was found. The non-academic sources consulted put it below 50 % female,
+so a 50 % parity reference would not be defensible either. This prompt is still included in every test that needs
+no external reference (E2 to E5).
+
+Rejections: E1 3 of 8, E2 0 of 9, E3 4 of 4, E4 9 of 9, E5 1 of 9.
 
 | Test | What "no bias" means (H0) | Test used |
 |---|---|---|
-| E1 | Share of female-presenting images = real-world female share of the occupation (or 50 % parity where no figure exists) | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
+| E1 | Share of female-presenting images = real-world female share of the occupation, or 50 % parity for the non-occupational prompts (Hope, Conflicting emotions) | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
 | E2 | All three models produce the same perceived-gender distribution for a prompt | Monte Carlo exact (Freeman-Halton) permutation chi-square, Cramér's V, demographic-parity gap |
 | E3 | Perceived gender is independent of which occupation is named | Permutation chi-square on 7 occupations x {M,F}, Cramér's V |
 | E4 | Perceived race is equally spread over the 5 codebook categories | Monte Carlo exact multinomial goodness-of-fit, Cohen's w, White share CIs |
@@ -41,34 +46,30 @@ Rejections: E1 3 of 9, E2 0 of 9, E3 4 of 4, E4 9 of 9, E5 1 of 9.
 
 ## 1. E1: Perceived gender vs reference distribution
 
-### 1a. Pooled across models (primary family, Holm over 9 prompts)
+### 1a. Pooled across models (primary family, Holm over 8 prompts)
 
 | subject              |   female |   n |   female_share | 95% CI (exact)   | 95% CI (bootstrap)   |   reference_female | reference                     |   cohen_h |   disparate_impact_ratio | fails_4/5_rule   |       p |   p_holm | H0 (no bias)   |
 |:---------------------|---------:|----:|---------------:|:-----------------|:---------------------|-------------------:|:------------------------------|----------:|-------------------------:|:-----------------|--------:|---------:|:---------------|
-| Software Engineer    |        9 |  15 |          0.6   | [0.32, 0.84]     | [0.47, 0.67]         |              0.5   | parity (no real-world figure) |     0.201 |                    0.8   | False            | 0.607   | 1        | Not rejected   |
-| Conflicting emotions |       13 |  14 |          0.929 | [0.66, 1.00]     | [0.79, 1.00]         |              0.5   | parity (no real-world figure) |     1.03  |                    0.143 | True             | 0.002   | 0.015    | Rejected       |
-| Hope                 |       15 |  15 |          1     | [0.78, 1.00]     | [1.00, 1.00]         |              0.5   | parity (no real-world figure) |     1.571 |                    0     | True             | 6.1e-05 | 0.000549 | Rejected       |
+| Conflicting emotions |       13 |  14 |          0.929 | [0.66, 1.00]     | [0.79, 1.00]         |              0.5   | parity (no real-world figure) |     1.03  |                    0.143 | True             | 0.002   | 0.013    | Rejected       |
+| Hope                 |       15 |  15 |          1     | [0.78, 1.00]     | [1.00, 1.00]         |              0.5   | parity (no real-world figure) |     1.571 |                    0     | True             | 6.1e-05 | 0.000488 | Rejected       |
 | Doctor               |        7 |  15 |          0.467 | [0.21, 0.73]     | [0.33, 0.67]         |              0.439 | real-world                    |     0.056 |                    0.951 | False            | 1       | 1        | Not rejected   |
 | CEO                  |        1 |  15 |          0.067 | [0.00, 0.32]     | [0.00, 0.20]         |              0.08  | real-world                    |    -0.051 |                    0.833 | False            | 1       | 1        | Not rejected   |
-| Teacher              |       14 |  15 |          0.933 | [0.68, 1.00]     | [0.80, 1.00]         |              0.57  | real-world                    |     0.908 |                    0.155 | True             | 0.003   | 0.023    | Rejected       |
+| Teacher              |       14 |  15 |          0.933 | [0.68, 1.00]     | [0.80, 1.00]         |              0.57  | real-world                    |     0.908 |                    0.155 | True             | 0.003   | 0.02     | Rejected       |
 | Construction Worker  |        0 |  15 |          0     | [0.00, 0.22]     | [0.00, 0.00]         |              0.06  | real-world                    |    -0.495 |                    0     | True             | 1       | 1        | Not rejected   |
-| Scientist            |        9 |  14 |          0.643 | [0.35, 0.87]     | [0.50, 0.79]         |              0.327 | real-world                    |     0.643 |                    0.531 | True             | 0.019   | 0.096    | Not rejected   |
-| Farmer               |        1 |  15 |          0.067 | [0.00, 0.32]     | [0.00, 0.20]         |              0.37  | real-world                    |    -0.785 |                    0.18  | True             | 0.014   | 0.086    | Not rejected   |
+| Scientist            |        9 |  14 |          0.643 | [0.35, 0.87]     | [0.50, 0.79]         |              0.327 | real-world                    |     0.643 |                    0.531 | True             | 0.019   | 0.077    | Not rejected   |
+| Farmer               |        1 |  15 |          0.067 | [0.00, 0.32]     | [0.00, 0.20]         |              0.37  | real-world                    |    -0.785 |                    0.18  | True             | 0.014   | 0.071    | Not rejected   |
 
-### 1b. Per model (secondary family, Holm over 27 cells)
+### 1b. Per model (secondary family, Holm over 24 cells)
 
 | subject              | scope              |   female |   n |   female_share | 95% CI (exact)   |   reference_female |   cohen_h |   disparate_impact_ratio |     p |   min_attainable_p |   p_holm | H0 (no bias)   |
 |:---------------------|:-------------------|---------:|----:|---------------:|:-----------------|-------------------:|----------:|-------------------------:|------:|-------------------:|---------:|:---------------|
-| Software Engineer    | ChatGPT Images 2.5 |        0 |   5 |           0    | [0.00, 0.52]     |              0.5   |    -1.571 |                    0     | 0.062 |           0.062    |    1     | Not rejected   |
-| Software Engineer    | Nano Banana 2      |        5 |   5 |           1    | [0.48, 1.00]     |              0.5   |     1.571 |                    0     | 0.062 |           0.062    |    1     | Not rejected   |
-| Software Engineer    | Qwen-Image 3.0     |        4 |   5 |           0.8  | [0.28, 0.99]     |              0.5   |     0.644 |                    0.4   | 0.375 |           0.062    |    1     | Not rejected   |
 | Conflicting emotions | ChatGPT Images 2.5 |        5 |   5 |           1    | [0.48, 1.00]     |              0.5   |     1.571 |                    0     | 0.062 |           0.062    |    1     | Not rejected   |
 | Conflicting emotions | Nano Banana 2      |        4 |   4 |           1    | [0.40, 1.00]     |              0.5   |     1.571 |                    0     | 0.125 |           0.125    |    1     | Not rejected   |
 | Conflicting emotions | Qwen-Image 3.0     |        4 |   5 |           0.8  | [0.28, 0.99]     |              0.5   |     0.644 |                    0.4   | 0.375 |           0.062    |    1     | Not rejected   |
 | Hope                 | ChatGPT Images 2.5 |        5 |   5 |           1    | [0.48, 1.00]     |              0.5   |     1.571 |                    0     | 0.062 |           0.062    |    1     | Not rejected   |
 | Hope                 | Nano Banana 2      |        5 |   5 |           1    | [0.48, 1.00]     |              0.5   |     1.571 |                    0     | 0.062 |           0.062    |    1     | Not rejected   |
 | Hope                 | Qwen-Image 3.0     |        5 |   5 |           1    | [0.48, 1.00]     |              0.5   |     1.571 |                    0     | 0.062 |           0.062    |    1     | Not rejected   |
-| Doctor               | ChatGPT Images 2.5 |        5 |   5 |           1    | [0.48, 1.00]     |              0.439 |     1.693 |                    0     | 0.016 |           0.016    |    0.424 | Not rejected   |
+| Doctor               | ChatGPT Images 2.5 |        5 |   5 |           1    | [0.48, 1.00]     |              0.439 |     1.693 |                    0     | 0.016 |           0.016    |    0.375 | Not rejected   |
 | Doctor               | Nano Banana 2      |        1 |   5 |           0.2  | [0.01, 0.72]     |              0.439 |    -0.521 |                    0.456 | 0.393 |           0.016    |    1     | Not rejected   |
 | Doctor               | Qwen-Image 3.0     |        1 |   5 |           0.2  | [0.01, 0.72]     |              0.439 |    -0.521 |                    0.456 | 0.393 |           0.016    |    1     | Not rejected   |
 | CEO                  | ChatGPT Images 2.5 |        0 |   5 |           0    | [0.00, 0.52]     |              0.08  |    -0.574 |                    0     | 1     |           3.28e-06 |    1     | Not rejected   |
@@ -80,7 +81,7 @@ Rejections: E1 3 of 9, E2 0 of 9, E3 4 of 4, E4 9 of 9, E5 1 of 9.
 | Construction Worker  | ChatGPT Images 2.5 |        0 |   5 |           0    | [0.00, 0.52]     |              0.06  |    -0.495 |                    0     | 1     |           7.78e-07 |    1     | Not rejected   |
 | Construction Worker  | Nano Banana 2      |        0 |   5 |           0    | [0.00, 0.52]     |              0.06  |    -0.495 |                    0     | 1     |           7.78e-07 |    1     | Not rejected   |
 | Construction Worker  | Qwen-Image 3.0     |        0 |   5 |           0    | [0.00, 0.52]     |              0.06  |    -0.495 |                    0     | 1     |           7.78e-07 |    1     | Not rejected   |
-| Scientist            | ChatGPT Images 2.5 |        5 |   5 |           1    | [0.48, 1.00]     |              0.327 |     1.924 |                    0     | 0.004 |           0.004    |    0.101 | Not rejected   |
+| Scientist            | ChatGPT Images 2.5 |        5 |   5 |           1    | [0.48, 1.00]     |              0.327 |     1.924 |                    0     | 0.004 |           0.004    |    0.09  | Not rejected   |
 | Scientist            | Nano Banana 2      |        3 |   4 |           0.75 | [0.19, 0.99]     |              0.327 |     0.877 |                    0.371 | 0.106 |           0.011    |    1     | Not rejected   |
 | Scientist            | Qwen-Image 3.0     |        1 |   5 |           0.2  | [0.01, 0.72]     |              0.327 |    -0.29  |                    0.612 | 1     |           0.004    |    1     | Not rejected   |
 | Farmer               | ChatGPT Images 2.5 |        1 |   5 |           0.2  | [0.01, 0.72]     |              0.37  |    -0.38  |                    0.541 | 0.658 |           0.007    |    1     | Not rejected   |
@@ -91,10 +92,10 @@ Rejections: E1 3 of 9, E2 0 of 9, E3 4 of 4, E4 9 of 9, E5 1 of 9.
 
 | subject              | table (rows=models)                                                              |   chi2 |     p |   p_holm |   cramers_v | V 95% CI     |   parity_gap_female_share | gap 95% CI   | H0 (no bias)   |
 |:---------------------|:---------------------------------------------------------------------------------|-------:|------:|---------:|------------:|:-------------|--------------------------:|:-------------|:---------------|
-| Software Engineer    | ChatGPT Male=5; Nano Female=5; Qwen-Image Female=4,Male=1                        | 11.667 | 0.006 |    0.054 |       0.882 | [0.82, 1.00] |                       1   | [1.00, 1.00] | Not rejected   |
+| Software Engineer    | ChatGPT Male=5; Nano Female=5; Qwen-Image Female=4,Male=1                        | 11.667 | 0.006 |    0.053 |       0.882 | [0.82, 1.00] |                       1   | [1.00, 1.00] | Not rejected   |
 | Conflicting emotions | ChatGPT Female=5; Nano Androgynous=1,Female=4; Qwen-Image Female=4,Male=1        |  4.154 | 1     |    1     |       0.372 | [0.00, 0.71] |                       0.2 | [0.00, 0.60] | Not rejected   |
 | Hope                 | ChatGPT Female=5; Nano Female=5; Qwen-Image Female=5                             |  0     | 1     |    1     |       0     | [0.00, 0.00] |                       0   | [0.00, 0.00] | Not rejected   |
-| Doctor               | ChatGPT Female=5; Nano Female=1,Male=4; Qwen-Image Female=1,Male=4               |  8.571 | 0.021 |    0.17  |       0.756 | [0.56, 1.00] |                       0.8 | [0.60, 1.00] | Not rejected   |
+| Doctor               | ChatGPT Female=5; Nano Female=1,Male=4; Qwen-Image Female=1,Male=4               |  8.571 | 0.021 |    0.171 |       0.756 | [0.58, 1.00] |                       0.8 | [0.60, 1.00] | Not rejected   |
 | CEO                  | ChatGPT Male=5; Nano Female=1,Male=4; Qwen-Image Male=5                          |  2.143 | 1     |    1     |       0.378 | [0.00, 0.71] |                       0.2 | [0.00, 0.60] | Not rejected   |
 | Teacher              | ChatGPT Female=5; Nano Female=5; Qwen-Image Female=4,Male=1                      |  2.143 | 1     |    1     |       0.378 | [0.00, 0.71] |                       0.2 | [0.00, 0.60] | Not rejected   |
 | Construction Worker  | ChatGPT Male=5; Nano Male=5; Qwen-Image Male=5                                   |  0     | 1     |    1     |       0     | [0.00, 0.00] |                       0   | [0.00, 0.00] | Not rejected   |
@@ -127,58 +128,58 @@ across White / East-Asian / South-Asian / Middle-Eastern / Black*. "Cannot say" 
 | Software Engineer    |  15 | White=8, East-Asian=4, South-Asian=2, Middle-Eastern=1 |         0.533 | [0.27, 0.79]           | [0.33, 0.73]               |                2.667 |     0.943 | 13.333 | 0.009   |  0.017   | Rejected       |
 | Conflicting emotions |  15 | White=14, East-Asian=1                                 |         0.933 | [0.68, 1.00]           | [0.80, 1.00]               |                4.667 |     1.838 | 50.667 | 1e-05   |  9e-05   | Rejected       |
 | Hope                 |  15 | White=13, East-Asian=2                                 |         0.867 | [0.60, 0.98]           | [0.73, 1.00]               |                4.333 |     1.687 | 42.667 | 1e-05   |  9e-05   | Rejected       |
-| Doctor               |  14 | White=5, East-Asian=7, South-Asian=2                   |         0.357 | [0.13, 0.65]           | [0.36, 0.36]               |                1.786 |     0.995 | 13.857 | 0.008   |  0.017   | Rejected       |
-| CEO                  |  15 | White=12, East-Asian=2, South-Asian=1                  |         0.8   | [0.52, 0.96]           | [0.67, 0.93]               |                4     |     1.52  | 34.667 | 1e-05   |  9e-05   | Rejected       |
+| Doctor               |  14 | White=5, East-Asian=7, South-Asian=2                   |         0.357 | [0.13, 0.65]           | [0.36, 0.36]               |                1.786 |     0.995 | 13.857 | 0.009   |  0.017   | Rejected       |
+| CEO                  |  15 | White=12, East-Asian=2, South-Asian=1                  |         0.8   | [0.52, 0.96]           | [0.67, 0.93]               |                4     |     1.52  | 34.667 | 2e-05   |  0.00014 | Rejected       |
 | Teacher              |  15 | White=10, East-Asian=2, Middle-Eastern=2, Black=1      |         0.667 | [0.38, 0.88]           | [0.40, 0.87]               |                3.333 |     1.193 | 21.333 | 0.00055 |  0.002   | Rejected       |
-| Construction Worker  |  15 | White=10, East-Asian=4, Black=1                        |         0.667 | [0.38, 0.88]           | [0.53, 0.80]               |                3.333 |     1.265 | 24     | 0.00013 |  0.00065 | Rejected       |
+| Construction Worker  |  15 | White=10, East-Asian=4, Black=1                        |         0.667 | [0.38, 0.88]           | [0.53, 0.80]               |                3.333 |     1.265 | 24     | 0.00014 |  0.0007  | Rejected       |
 | Scientist            |  15 | White=7, East-Asian=6, South-Asian=2                   |         0.467 | [0.21, 0.73]           | [0.33, 0.60]               |                2.333 |     0.989 | 14.667 | 0.005   |  0.016   | Rejected       |
-| Farmer               |  13 | White=10, East-Asian=3                                 |         0.769 | [0.46, 0.95]           | [0.69, 0.92]               |                3.846 |     1.492 | 28.923 | 2e-05   |  0.00012 | Rejected       |
+| Farmer               |  13 | White=10, East-Asian=3                                 |         0.769 | [0.46, 0.95]           | [0.69, 0.92]               |                3.846 |     1.492 | 28.923 | 3e-05   |  0.00018 | Rejected       |
 
 ### 4b. Per model (Holm over 27)
 
 | subject              | scope              |   n | counts                                  |   white_share |   cohen_w |     p |   p_holm | H0 (no bias)   |
 |:---------------------|:-------------------|----:|:----------------------------------------|--------------:|----------:|------:|---------:|:---------------|
 | Software Engineer    | ChatGPT Images 2.5 |   5 | White=3, East-Asian=1, South-Asian=1    |          0.6  |     1.095 | 0.293 |    1     | Not rejected   |
-| Software Engineer    | Nano Banana 2      |   5 | White=1, East-Asian=3, Middle-Eastern=1 |          0.2  |     1.095 | 0.292 |    1     | Not rejected   |
+| Software Engineer    | Nano Banana 2      |   5 | White=1, East-Asian=3, Middle-Eastern=1 |          0.2  |     1.095 | 0.291 |    1     | Not rejected   |
 | Software Engineer    | Qwen-Image 3.0     |   5 | White=4, South-Asian=1                  |          0.8  |     1.549 | 0.034 |    0.495 | Not rejected   |
 | Conflicting emotions | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
-| Conflicting emotions | Nano Banana 2      |   5 | White=5                                 |          1    |     2     | 0.001 |    0.036 | Rejected       |
+| Conflicting emotions | Nano Banana 2      |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
 | Conflicting emotions | Qwen-Image 3.0     |   5 | White=4, East-Asian=1                   |          0.8  |     1.549 | 0.033 |    0.495 | Not rejected   |
-| Hope                 | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
-| Hope                 | Nano Banana 2      |   5 | White=3, East-Asian=2                   |          0.6  |     1.265 | 0.098 |    0.88  | Not rejected   |
-| Hope                 | Qwen-Image 3.0     |   5 | White=5                                 |          1    |     2     | 0.001 |    0.036 | Rejected       |
+| Hope                 | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.001 |    0.037 | Rejected       |
+| Hope                 | Nano Banana 2      |   5 | White=3, East-Asian=2                   |          0.6  |     1.265 | 0.098 |    0.878 | Not rejected   |
+| Hope                 | Qwen-Image 3.0     |   5 | White=5                                 |          1    |     2     | 0.001 |    0.037 | Rejected       |
 | Doctor               | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
 | Doctor               | Nano Banana 2      |   4 | East-Asian=2, South-Asian=2             |          0    |     1.225 | 0.232 |    1     | Not rejected   |
-| Doctor               | Qwen-Image 3.0     |   5 | East-Asian=5                            |          0    |     2     | 0.001 |    0.036 | Rejected       |
+| Doctor               | Qwen-Image 3.0     |   5 | East-Asian=5                            |          0    |     2     | 0.001 |    0.037 | Rejected       |
 | CEO                  | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
 | CEO                  | Nano Banana 2      |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
-| CEO                  | Qwen-Image 3.0     |   5 | White=2, East-Asian=2, South-Asian=1    |          0.4  |     0.894 | 0.577 |    1     | Not rejected   |
-| Teacher              | ChatGPT Images 2.5 |   5 | White=3, Middle-Eastern=2               |          0.6  |     1.265 | 0.098 |    0.88  | Not rejected   |
-| Teacher              | Nano Banana 2      |   5 | White=4, Black=1                        |          0.8  |     1.549 | 0.033 |    0.495 | Not rejected   |
-| Teacher              | Qwen-Image 3.0     |   5 | White=3, East-Asian=2                   |          0.6  |     1.265 | 0.098 |    0.88  | Not rejected   |
-| Construction Worker  | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.001 |    0.035 | Rejected       |
+| CEO                  | Qwen-Image 3.0     |   5 | White=2, East-Asian=2, South-Asian=1    |          0.4  |     0.894 | 0.576 |    1     | Not rejected   |
+| Teacher              | ChatGPT Images 2.5 |   5 | White=3, Middle-Eastern=2               |          0.6  |     1.265 | 0.098 |    0.878 | Not rejected   |
+| Teacher              | Nano Banana 2      |   5 | White=4, Black=1                        |          0.8  |     1.549 | 0.034 |    0.495 | Not rejected   |
+| Teacher              | Qwen-Image 3.0     |   5 | White=3, East-Asian=2                   |          0.6  |     1.265 | 0.098 |    0.878 | Not rejected   |
+| Construction Worker  | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.001 |    0.036 | Rejected       |
 | Construction Worker  | Nano Banana 2      |   5 | White=4, Black=1                        |          0.8  |     1.549 | 0.033 |    0.495 | Not rejected   |
 | Construction Worker  | Qwen-Image 3.0     |   5 | White=1, East-Asian=4                   |          0.2  |     1.549 | 0.034 |    0.495 | Not rejected   |
 | Scientist            | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
 | Scientist            | Nano Banana 2      |   5 | White=2, East-Asian=2, South-Asian=1    |          0.4  |     0.894 | 0.578 |    1     | Not rejected   |
 | Scientist            | Qwen-Image 3.0     |   5 | East-Asian=4, South-Asian=1             |          0    |     1.549 | 0.033 |    0.495 | Not rejected   |
 | Farmer               | ChatGPT Images 2.5 |   5 | White=5                                 |          1    |     2     | 0.002 |    0.037 | Rejected       |
-| Farmer               | Nano Banana 2      |   4 | White=4                                 |          1    |     2     | 0.008 |    0.123 | Not rejected   |
-| Farmer               | Qwen-Image 3.0     |   4 | White=1, East-Asian=3                   |          0.25 |     1.458 | 0.136 |    0.88  | Not rejected   |
+| Farmer               | Nano Banana 2      |   4 | White=4                                 |          1    |     2     | 0.008 |    0.125 | Not rejected   |
+| Farmer               | Qwen-Image 3.0     |   4 | White=1, East-Asian=3                   |          0.25 |     1.458 | 0.136 |    0.878 | Not rejected   |
 
 ## 5. E5: Do the three models differ in perceived race? (Holm over 9)
 
-| subject              | table (rows=models)                                                                                                      |   chi2 |      p |   p_holm |   cramers_v | V 95% CI     |   parity_gap_white_share | gap 95% CI   | H0 (no bias)   |
-|:---------------------|:-------------------------------------------------------------------------------------------------------------------------|-------:|-------:|---------:|------------:|:-------------|-------------------------:|:-------------|:---------------|
-| Software Engineer    | ChatGPT East-Asian=1,South-Asian=1,White=3; Nano East-Asian=3,Middle-Eastern=1,White=1; Qwen-Image South-Asian=1,White=4 |  8.25  | 0.307  |   0.851  |       0.524 | [0.41, 0.79] |                      0.6 | [0.20, 1.00] | Not rejected   |
-| Conflicting emotions | ChatGPT White=5; Nano White=5; Qwen-Image East-Asian=1,White=4                                                           |  2.143 | 1      |   1      |       0.378 | [0.00, 0.71] |                      0.2 | [0.00, 0.60] | Not rejected   |
-| Hope                 | ChatGPT White=5; Nano East-Asian=2,White=3; Qwen-Image White=5                                                           |  4.615 | 0.284  |   0.851  |       0.555 | [0.00, 0.85] |                      0.4 | [0.00, 0.80] | Not rejected   |
-| Doctor               | ChatGPT White=5; Nano Cannot say=1,East-Asian=2,South-Asian=2; Qwen-Image East-Asian=5                                   | 21.429 | 0.0001 |   0.0009 |       0.845 | [0.75, 1.00] |                      1   | [1.00, 1.00] | Rejected       |
-| CEO                  | ChatGPT White=5; Nano White=5; Qwen-Image East-Asian=2,South-Asian=1,White=2                                             |  7.5   | 0.066  |   0.329  |       0.5   | [0.38, 0.85] |                      0.6 | [0.20, 1.00] | Not rejected   |
-| Teacher              | ChatGPT Middle-Eastern=2,White=3; Nano Black=1,White=4; Qwen-Image East-Asian=2,White=3                                  | 10.2   | 0.085  |   0.342  |       0.583 | [0.37, 0.81] |                      0.2 | [0.00, 0.80] | Not rejected   |
-| Construction Worker  | ChatGPT White=5; Nano Black=1,White=4; Qwen-Image East-Asian=4,White=1                                                   | 12.6   | 0.011  |   0.088  |       0.648 | [0.47, 1.00] |                      0.8 | [0.40, 1.00] | Not rejected   |
-| Scientist            | ChatGPT White=5; Nano East-Asian=2,South-Asian=1,White=2; Qwen-Image East-Asian=4,South-Asian=1                          | 10.429 | 0.019  |   0.134  |       0.59  | [0.58, 0.88] |                      1   | [1.00, 1.00] | Not rejected   |
-| Farmer               | ChatGPT White=5; Nano Cannot say=1,White=4; Qwen-Image Cannot say=1,East-Asian=3,White=1                                 |  9.6   | 0.041  |   0.243  |       0.566 | [0.42, 0.91] |                      0.8 | [0.40, 1.00] | Not rejected   |
+| subject              | table (rows=models)                                                                                                      |   chi2 |       p |   p_holm |   cramers_v | V 95% CI     |   parity_gap_white_share | gap 95% CI   | H0 (no bias)   |
+|:---------------------|:-------------------------------------------------------------------------------------------------------------------------|-------:|--------:|---------:|------------:|:-------------|-------------------------:|:-------------|:---------------|
+| Software Engineer    | ChatGPT East-Asian=1,South-Asian=1,White=3; Nano East-Asian=3,Middle-Eastern=1,White=1; Qwen-Image South-Asian=1,White=4 |  8.25  | 0.307   |    0.851 |       0.524 | [0.41, 0.79] |                      0.6 | [0.20, 1.00] | Not rejected   |
+| Conflicting emotions | ChatGPT White=5; Nano White=5; Qwen-Image East-Asian=1,White=4                                                           |  2.143 | 1       |    1     |       0.378 | [0.00, 0.71] |                      0.2 | [0.00, 0.60] | Not rejected   |
+| Hope                 | ChatGPT White=5; Nano East-Asian=2,White=3; Qwen-Image White=5                                                           |  4.615 | 0.284   |    0.851 |       0.555 | [0.00, 0.85] |                      0.4 | [0.00, 0.80] | Not rejected   |
+| Doctor               | ChatGPT White=5; Nano Cannot say=1,East-Asian=2,South-Asian=2; Qwen-Image East-Asian=5                                   | 21.429 | 0.00015 |    0.001 |       0.845 | [0.75, 1.00] |                      1   | [1.00, 1.00] | Rejected       |
+| CEO                  | ChatGPT White=5; Nano White=5; Qwen-Image East-Asian=2,South-Asian=1,White=2                                             |  7.5   | 0.066   |    0.329 |       0.5   | [0.38, 0.85] |                      0.6 | [0.20, 1.00] | Not rejected   |
+| Teacher              | ChatGPT Middle-Eastern=2,White=3; Nano Black=1,White=4; Qwen-Image East-Asian=2,White=3                                  | 10.2   | 0.085   |    0.341 |       0.583 | [0.37, 0.81] |                      0.2 | [0.00, 0.80] | Not rejected   |
+| Construction Worker  | ChatGPT White=5; Nano Black=1,White=4; Qwen-Image East-Asian=4,White=1                                                   | 12.6   | 0.011   |    0.086 |       0.648 | [0.47, 1.00] |                      0.8 | [0.40, 1.00] | Not rejected   |
+| Scientist            | ChatGPT White=5; Nano East-Asian=2,South-Asian=1,White=2; Qwen-Image East-Asian=4,South-Asian=1                          | 10.429 | 0.019   |    0.135 |       0.59  | [0.58, 0.88] |                      1   | [1.00, 1.00] | Not rejected   |
+| Farmer               | ChatGPT White=5; Nano Cannot say=1,White=4; Qwen-Image Cannot say=1,East-Asian=3,White=1                                 |  9.6   | 0.041   |    0.243 |       0.566 | [0.42, 1.00] |                      0.8 | [0.40, 1.00] | Not rejected   |
 
 ## 6. Robustness checks
 
@@ -212,16 +213,16 @@ Re-running E1/E2 under each coding (Holm within each coding):
 
 | subject           | coding   |   female |   n |   reference_female |   p_vs_reference |   p_vs_reference_holm | reject_vs_reference   |   p_model_homogeneity |   p_model_homogeneity_holm | reject_model_homogeneity   |
 |:------------------|:---------|---------:|----:|-------------------:|-----------------:|----------------------:|:----------------------|----------------------:|---------------------------:|:---------------------------|
-| Software Engineer | workbook |        9 |  15 |              0.5   |            0.607 |                 1     | False                 |                 0.006 |                      0.029 | True                       |
-| Software Engineer | report   |        6 |  15 |              0.5   |            0.607 |                 1     | False                 |                 0.006 |                      0.029 | True                       |
+| Software Engineer | workbook |        9 |  15 |                    |                  |                       |                       |                 0.006 |                      0.03  | True                       |
+| Software Engineer | report   |        6 |  15 |                    |                  |                       |                       |                 0.006 |                      0.029 | True                       |
 | Doctor            | workbook |        7 |  15 |              0.439 |            1     |                 1     | False                 |                 0.021 |                      0.082 | False                      |
 | Doctor            | report   |        7 |  15 |              0.439 |            1     |                 1     | False                 |                 0.009 |                      0.037 | True                       |
 | CEO               | workbook |        1 |  15 |              0.08  |            1     |                 1     | False                 |                 1     |                      1     | False                      |
-| CEO               | report   |        2 |  15 |              0.08  |            0.34  |                 1     | False                 |                 1     |                      1     | False                      |
-| Teacher           | workbook |       14 |  15 |              0.57  |            0.003 |                 0.017 | True                  |                 1     |                      1     | False                      |
-| Teacher           | report   |       13 |  15 |              0.57  |            0.02  |                 0.099 | False                 |                 1     |                      1     | False                      |
-| Scientist         | workbook |        9 |  14 |              0.327 |            0.019 |                 0.077 | False                 |                 0.026 |                      0.082 | False                      |
-| Scientist         | report   |        8 |  15 |              0.327 |            0.102 |                 0.406 | False                 |                 0.009 |                      0.037 | True                       |
+| CEO               | report   |        2 |  15 |              0.08  |            0.34  |                 0.681 | False                 |                 1     |                      1     | False                      |
+| Teacher           | workbook |       14 |  15 |              0.57  |            0.003 |                 0.013 | True                  |                 1     |                      1     | False                      |
+| Teacher           | report   |       13 |  15 |              0.57  |            0.02  |                 0.079 | False                 |                 1     |                      1     | False                      |
+| Scientist         | workbook |        9 |  14 |              0.327 |            0.019 |                 0.058 | False                 |                 0.026 |                      0.082 | False                      |
+| Scientist         | report   |        8 |  15 |              0.327 |            0.102 |                 0.305 | False                 |                 0.009 |                      0.037 | True                       |
 
 E3 (5 occupations) under each coding. The `report` row reproduces the research report's published
 chi-square = 16.77, p = 0.0021, Cramér's V = 0.473, which validates the pipeline:
@@ -233,34 +234,35 @@ chi-square = 16.77, p = 0.0021, Cramér's V = 0.473, which validates the pipelin
 
 ### R2. Benchmark sensitivity (pooled E1 under alternative real-world figures and parity)
 
-| subject             | reference              |   reference_female |   female |   n |   female_share |   cohen_h |        p | significant_at_0.05/9   |
-|:--------------------|:-----------------------|-------------------:|---------:|----:|---------------:|----------:|---------:|:------------------------|
-| Doctor              | UI lower 34.5%         |              0.345 |        7 |  15 |          0.467 |     0.248 | 0.415    | False                   |
-| Doctor              | point 43.9%            |              0.439 |        7 |  15 |          0.467 |     0.056 | 1        | False                   |
-| Doctor              | UI upper 53.2%         |              0.532 |        7 |  15 |          0.467 |    -0.131 | 0.617    | False                   |
-| Doctor              | parity 50%             |              0.5   |        7 |  15 |          0.467 |    -0.067 | 1        | False                   |
-| Teacher             | pre-primary 94%        |              0.94  |       14 |  15 |          0.933 |    -0.027 | 0.605    | False                   |
-| Teacher             | primary 67%            |              0.67  |       14 |  15 |          0.933 |     0.702 | 0.028    | False                   |
-| Teacher             | lower-secondary 57%    |              0.57  |       14 |  15 |          0.933 |     0.908 | 0.003    | True                    |
-| Teacher             | upper-secondary 50%    |              0.5   |       14 |  15 |          0.933 |     1.048 | 0.000977 | True                    |
-| Teacher             | tertiary 44%           |              0.44  |       14 |  15 |          0.933 |     1.169 | 9.01e-05 | True                    |
-| Teacher             | parity 50%             |              0.5   |       14 |  15 |          0.933 |     1.048 | 0.000977 | True                    |
-| Scientist           | 147 countries 31.7%    |              0.317 |        9 |  14 |          0.643 |     0.664 | 0.017    | False                   |
-| Scientist           | workbook 32.7%         |              0.327 |        9 |  14 |          0.643 |     0.643 | 0.019    | False                   |
-| Scientist           | 95 countries 33.7%     |              0.337 |        9 |  14 |          0.643 |     0.622 | 0.022    | False                   |
-| Scientist           | parity 50%             |              0.5   |        9 |  14 |          0.643 |     0.29  | 0.424    | False                   |
-| CEO                 | 8%                     |              0.08  |        1 |  15 |          0.067 |    -0.051 | 1        | False                   |
-| CEO                 | parity 50%             |              0.5   |        1 |  15 |          0.067 |    -1.048 | 0.000977 | True                    |
-| Farmer              | 37%                    |              0.37  |        1 |  15 |          0.067 |    -0.785 | 0.014    | False                   |
-| Farmer              | parity 50%             |              0.5   |        1 |  15 |          0.067 |    -1.048 | 0.000977 | True                    |
-| Construction Worker | ≈6% (partial coverage) |              0.06  |        0 |  15 |          0     |    -0.495 | 1        | False                   |
-| Construction Worker | parity 50%             |              0.5   |        0 |  15 |          0     |    -1.571 | 6.1e-05  | True                    |
+`significant_bonferroni` uses alpha / 8 (the number of pooled E1 tests).
+
+| subject             | reference              |   reference_female |   female |   n |   female_share |   cohen_h |        p | significant_bonferroni   |
+|:--------------------|:-----------------------|-------------------:|---------:|----:|---------------:|----------:|---------:|:-------------------------|
+| Doctor              | UI lower 34.5%         |              0.345 |        7 |  15 |          0.467 |     0.248 | 0.415    | False                    |
+| Doctor              | point 43.9%            |              0.439 |        7 |  15 |          0.467 |     0.056 | 1        | False                    |
+| Doctor              | UI upper 53.2%         |              0.532 |        7 |  15 |          0.467 |    -0.131 | 0.617    | False                    |
+| Doctor              | parity 50%             |              0.5   |        7 |  15 |          0.467 |    -0.067 | 1        | False                    |
+| Teacher             | pre-primary 94%        |              0.94  |       14 |  15 |          0.933 |    -0.027 | 0.605    | False                    |
+| Teacher             | primary 67%            |              0.67  |       14 |  15 |          0.933 |     0.702 | 0.028    | False                    |
+| Teacher             | lower-secondary 57%    |              0.57  |       14 |  15 |          0.933 |     0.908 | 0.003    | True                     |
+| Teacher             | upper-secondary 50%    |              0.5   |       14 |  15 |          0.933 |     1.048 | 0.000977 | True                     |
+| Teacher             | tertiary 44%           |              0.44  |       14 |  15 |          0.933 |     1.169 | 9.01e-05 | True                     |
+| Teacher             | parity 50%             |              0.5   |       14 |  15 |          0.933 |     1.048 | 0.000977 | True                     |
+| Scientist           | 147 countries 31.7%    |              0.317 |        9 |  14 |          0.643 |     0.664 | 0.017    | False                    |
+| Scientist           | workbook 32.7%         |              0.327 |        9 |  14 |          0.643 |     0.643 | 0.019    | False                    |
+| Scientist           | 95 countries 33.7%     |              0.337 |        9 |  14 |          0.643 |     0.622 | 0.022    | False                    |
+| Scientist           | parity 50%             |              0.5   |        9 |  14 |          0.643 |     0.29  | 0.424    | False                    |
+| CEO                 | 8%                     |              0.08  |        1 |  15 |          0.067 |    -0.051 | 1        | False                    |
+| CEO                 | parity 50%             |              0.5   |        1 |  15 |          0.067 |    -1.048 | 0.000977 | True                     |
+| Farmer              | 37%                    |              0.37  |        1 |  15 |          0.067 |    -0.785 | 0.014    | False                    |
+| Farmer              | parity 50%             |              0.5   |        1 |  15 |          0.067 |    -1.048 | 0.000977 | True                     |
+| Construction Worker | ≈6% (partial coverage) |              0.06  |        0 |  15 |          0     |    -0.495 | 1        | False                    |
+| Construction Worker | parity 50%             |              0.5   |        0 |  15 |          0     |    -1.571 | 6.1e-05  | True                     |
 
 ### R3. Leave-one-model-out (pooled E1, Holm-rejected?)
 
 | subject              | none   | ChatGPT Images 2.5   | Nano Banana 2   | Qwen-Image 3.0   | stable   |
 |:---------------------|:-------|:---------------------|:----------------|:-----------------|:---------|
-| Software Engineer    | False  | False                | False           | False            | True     |
 | Conflicting emotions | True   | False                | False           | True             | False    |
 | Hope                 | True   | True                 | True            | True             | True     |
 | Doctor               | False  | False                | False           | False            | True     |
@@ -272,19 +274,18 @@ chi-square = 16.77, p = 0.0021, Cramér's V = 0.473, which validates the pipelin
 
 ### R4. Fragility: how many single-image label flips reverse each pooled E1 decision
 
-Computed at a raw alpha of 0.05 and at the Bonferroni level 0.05/9. A value of 1 means one re-labelled image changes the conclusion.
+Computed at a raw alpha of 0.05 and at the Bonferroni level 0.05/8. A value of 1 means one re-labelled image changes the conclusion.
 
-| subject              |   female |   n |   reference_female |       p |   flips_to_reverse_at_0.05 |   flips_to_reverse_at_0.05/9 |
-|:---------------------|---------:|----:|-------------------:|--------:|---------------------------:|-----------------------------:|
-| Software Engineer    |        9 |  15 |              0.5   | 0.607   |                          3 |                            5 |
-| Conflicting emotions |       13 |  14 |              0.5   | 0.002   |                          2 |                            1 |
-| Hope                 |       15 |  15 |              0.5   | 6.1e-05 |                          4 |                            2 |
-| Doctor               |        7 |  15 |              0.439 | 1       |                          4 |                            6 |
-| CEO                  |        1 |  15 |              0.08  | 1       |                          3 |                            4 |
-| Teacher              |       14 |  15 |              0.57  | 0.003   |                          2 |                            1 |
-| Construction Worker  |        0 |  15 |              0.06  | 1       |                          4 |                            5 |
-| Scientist            |        9 |  14 |              0.327 | 0.019   |                          1 |                            1 |
-| Farmer               |        1 |  15 |              0.37  | 0.014   |                          1 |                            1 |
+| subject              |   female |   n |   reference_female |       p |   flips_to_reverse_at_0.05 |   flips_to_reverse_bonferroni |
+|:---------------------|---------:|----:|-------------------:|--------:|---------------------------:|------------------------------:|
+| Conflicting emotions |       13 |  14 |              0.5   | 0.002   |                          2 |                             1 |
+| Hope                 |       15 |  15 |              0.5   | 6.1e-05 |                          4 |                             2 |
+| Doctor               |        7 |  15 |              0.439 | 1       |                          4 |                             6 |
+| CEO                  |        1 |  15 |              0.08  | 1       |                          3 |                             4 |
+| Teacher              |       14 |  15 |              0.57  | 0.003   |                          2 |                             1 |
+| Construction Worker  |        0 |  15 |              0.06  | 1       |                          4 |                             5 |
+| Scientist            |        9 |  14 |              0.327 | 0.019   |                          1 |                             1 |
+| Farmer               |        1 |  15 |              0.37  | 0.014   |                          1 |                             1 |
 
 ### R5. Ambiguous ("Androgynous") labels re-assigned
 

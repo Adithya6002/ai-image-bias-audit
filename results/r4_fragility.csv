@@ -1,5 +1,4 @@
-subject,female,n,reference_female,p,flips_to_reverse_at_0.05,flips_to_reverse_at_0.05/9
-Software Engineer,9,15,0.5,0.6072387695312499,3,5
+subject,female,n,reference_female,p,flips_to_reverse_at_0.05,flips_to_reverse_bonferroni
 Conflicting emotions,13,14,0.5,0.0018310546875,2,1
 Hope,15,15,0.5,6.103515625e-05,4,2
 Doctor,7,15,0.43900000000000006,1.0,4,6

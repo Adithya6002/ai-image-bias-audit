@@ -23,11 +23,24 @@ def _decide(df: pd.DataFrame, p_col: str = "p") -> pd.DataFrame:
     return df
 
 
-def _gender_reference(subject: str, bench: pd.DataFrame) -> tuple[float, str]:
+# Prompts with no defensible gender reference: excluded from every test that needs one.
+# Software Engineer: the only figures found (<50% female) were not from academic sources,
+# and parity is clearly not appropriate for this occupation.
+NO_GENDER_REFERENCE = {"Software Engineer"}
+
+
+def _gender_reference(subject: str, bench: pd.DataFrame) -> tuple[float, str] | None:
+    """Real-world female share, 50% parity for non-occupational prompts, or None if excluded."""
+    if subject in NO_GENDER_REFERENCE:
+        return None
     row = bench[bench.subject == subject]
     if row.empty:
         return 0.5, "parity (no real-world figure)"
     return float(row.female_share.iloc[0]), "real-world"
+
+
+def reference_subjects(counts, bench) -> list[str]:
+    return [s for s in subjects(counts) if _gender_reference(s, bench) is not None]
 
 
 def _binary_sex(counts: pd.DataFrame, subject: str) -> pd.DataFrame:
@@ -57,7 +70,7 @@ def gender_vs_reference(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame]
     Returns two Holm families: pooled per prompt (primary) and per model x prompt.
     """
     pooled, per_model = [], []
-    for subj in subjects(counts):
+    for subj in reference_subjects(counts, bench):
         t = _binary_sex(counts, subj)
         ref, src = _gender_reference(subj, bench)
         k, n = t["Female"].to_numpy(), t.sum(1).to_numpy()
@@ -171,7 +184,7 @@ def annotator_robustness(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame
 
     rows = []
     for occ in occs:
-        ref, _ = _gender_reference(occ, bench)
+        ref = (_gender_reference(occ, bench) or (np.nan, ""))[0]
         for source in ("workbook", "report"):
             if source == "workbook":
                 t = _binary_sex(counts, occ)
@@ -183,15 +196,16 @@ def annotator_robustness(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame
                 mtab = np.array([REPORT_CODING[occ][m] for m in MODELS])
             _, p_h = st.permutation_independence(mtab, rng)
             rows.append({"subject": occ, "coding": source, "female": int(k.sum()), "n": int(n.sum()),
-                         "reference_female": ref, "p_vs_reference": st.binom_test(int(k.sum()), int(n.sum()), ref),
+                         "reference_female": ref, "p_vs_reference": np.nan if np.isnan(ref) else st.binom_test(int(k.sum()), int(n.sum()), ref),
                          "p_model_homogeneity": p_h})
     df = pd.DataFrame(rows)
     for col in ("p_vs_reference", "p_model_homogeneity"):
         for source in ("workbook", "report"):
-            mask = df.coding == source
+            mask = (df.coding == source) & df[col].notna()
             df.loc[mask, col + "_holm"] = st.adjust(df.loc[mask, col], "holm")
     for col in ("p_vs_reference", "p_model_homogeneity"):
-        df[col.replace("p_", "reject_")] = df[col + "_holm"] < ALPHA
+        df[col.replace("p_", "reject_")] = np.where(df[col + "_holm"].notna(),
+                                                     df[col + "_holm"] < ALPHA, None)
 
     occ_wb = occupation_gender_association(counts, rng, occupations=occs).iloc[[0]]
     occ_rep = occupation_gender_association(counts, rng, coding=REPORT_CODING, occupations=occs).iloc[[0]]
@@ -199,7 +213,8 @@ def annotator_robustness(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame
     return agree, df, occ
 
 
-def benchmark_sensitivity(counts) -> pd.DataFrame:
+def benchmark_sensitivity(counts, n_tests: int) -> pd.DataFrame:
+    """Pooled E1 under alternative references; Bonferroni level alpha / n_tests."""
     rows = []
     for subj, alts in BENCHMARK_ALTERNATIVES.items():
         t = _binary_sex(counts, subj)
@@ -209,13 +224,13 @@ def benchmark_sensitivity(counts) -> pd.DataFrame:
             rows.append({"subject": subj, "reference": label, "reference_female": ref,
                          "female": k, "n": n, "female_share": k / n,
                          "cohen_h": st.cohen_h(k / n, ref), "p": p,
-                         "significant_at_0.05/9": p < ALPHA / 9})
+                         "significant_bonferroni": p < ALPHA / n_tests})
     return pd.DataFrame(rows)
 
 
 def leave_one_model_out(counts, bench) -> pd.DataFrame:
     rows = []
-    subs = subjects(counts)
+    subs = reference_subjects(counts, bench)
     for dropped in [None] + MODELS:
         keep = [m for m in MODELS if m != dropped]
         ps = []
@@ -234,19 +249,19 @@ def leave_one_model_out(counts, bench) -> pd.DataFrame:
 
 
 def fragility_table(pooled: pd.DataFrame) -> pd.DataFrame:
-    rows = []
+    rows, bonf = [], ALPHA / len(pooled)
     for _, r in pooled.iterrows():
         rows.append({"subject": r.subject, "female": r.female, "n": r.n,
                      "reference_female": r.reference_female, "p": r.p,
                      "flips_to_reverse_at_0.05": st.fragility(r.female, r.n, r.reference_female, ALPHA),
-                     "flips_to_reverse_at_0.05/9": st.fragility(r.female, r.n, r.reference_female, ALPHA / 9)})
+                     "flips_to_reverse_bonferroni": st.fragility(r.female, r.n, r.reference_female, bonf)})
     return pd.DataFrame(rows)
 
 
 def ambiguous_label_sensitivity(counts, bench) -> pd.DataFrame:
     """Re-test prompts with 'Androgynous' labels counting them as female, then as male."""
     rows = []
-    for subj in subjects(counts):
+    for subj in reference_subjects(counts, bench):
         t = table(counts, subj, "Sex")
         amb = int(t.drop(columns=["Male", "Female"], errors="ignore").to_numpy().sum())
         if not amb:

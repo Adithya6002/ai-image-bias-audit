@@ -34,7 +34,7 @@ def main() -> None:
 
     res["r1_annotator_cell_agreement"], res["r1_annotator_retest"], res["r1_annotator_occupation"] = \
         an.annotator_robustness(counts, bench, rng)
-    res["r2_benchmark_sensitivity"] = an.benchmark_sensitivity(counts)
+    res["r2_benchmark_sensitivity"] = an.benchmark_sensitivity(counts, len(res["e1_gender_vs_reference_pooled"]))
     res["r3_leave_one_model_out"] = an.leave_one_model_out(counts, bench).reset_index()
     res["r4_fragility"] = an.fragility_table(res["e1_gender_vs_reference_pooled"])
     res["r5_ambiguous_labels"] = an.ambiguous_label_sensitivity(counts, bench)

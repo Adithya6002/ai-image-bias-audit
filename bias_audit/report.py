@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .analysis import ALPHA
+from .analysis import ALPHA, NO_GENDER_REFERENCE
 from .stats import N_BOOT, N_PERM
 
 
@@ -48,7 +48,10 @@ def write_report(res: dict[str, pd.DataFrame], bench: pd.DataFrame, path: Path, 
     ])
     wide = verdict.pivot_table(index="subject", columns="test", values="H0 (no bias)", aggfunc="first")
     order = list(dict.fromkeys(verdict["subject"]))
-    wide = wide.reindex(order).fillna("n/a").reset_index()
+    wide = wide.reindex(order)
+    wide.loc[wide.index.isin(NO_GENDER_REFERENCE), "E1 gender vs reference"] = "Omitted"
+    wide = wide.fillna("n/a").reset_index()
+    omitted = ", ".join(sorted(NO_GENDER_REFERENCE))
 
     r1a, r1, r1o = res["r1_annotator_cell_agreement"], res["r1_annotator_retest"], res["r1_annotator_occupation"]
     r3 = res["r3_leave_one_model_out"]
@@ -70,11 +73,16 @@ significance whatever the outcome (see `min_attainable_p`).
 
 {wide.to_markdown(index=False)}
 
+**Omitted from E1 (and from R3 to R5, which build on it): {omitted}.** No academic real-world statistic
+for the gender split of software engineers was found. The non-academic sources consulted put it below 50 % female,
+so a 50 % parity reference would not be defensible either. This prompt is still included in every test that needs
+no external reference (E2 to E5).
+
 Rejections: E1 {tally(e1p)}, E2 {tally(e2)}, E3 {tally(e3)}, E4 {tally(e4p)}, E5 {tally(e5)}.
 
 | Test | What "no bias" means (H0) | Test used |
 |---|---|---|
-| E1 | Share of female-presenting images = real-world female share of the occupation (or 50 % parity where no figure exists) | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
+| E1 | Share of female-presenting images = real-world female share of the occupation, or 50 % parity for the non-occupational prompts (Hope, Conflicting emotions) | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
 | E2 | All three models produce the same perceived-gender distribution for a prompt | Monte Carlo exact (Freeman-Halton) permutation chi-square, Cramér's V, demographic-parity gap |
 | E3 | Perceived gender is independent of which occupation is named | Permutation chi-square on 7 occupations x {{M,F}}, Cramér's V |
 | E4 | Perceived race is equally spread over the 5 codebook categories | Monte Carlo exact multinomial goodness-of-fit, Cohen's w, White share CIs |
@@ -143,6 +151,8 @@ chi-square = 16.77, p = 0.0021, Cramér's V = 0.473, which validates the pipelin
 
 ### R2. Benchmark sensitivity (pooled E1 under alternative real-world figures and parity)
 
+`significant_bonferroni` uses alpha / {len(e1p)} (the number of pooled E1 tests).
+
 {_fmt(res["r2_benchmark_sensitivity"])}
 
 ### R3. Leave-one-model-out (pooled E1, Holm-rejected?)
@@ -151,7 +161,7 @@ chi-square = 16.77, p = 0.0021, Cramér's V = 0.473, which validates the pipelin
 
 ### R4. Fragility: how many single-image label flips reverse each pooled E1 decision
 
-Computed at a raw alpha of 0.05 and at the Bonferroni level 0.05/9. A value of 1 means one re-labelled image changes the conclusion.
+Computed at a raw alpha of 0.05 and at the Bonferroni level 0.05/{len(e1p)}. A value of 1 means one re-labelled image changes the conclusion.
 
 {_fmt(res["r4_fragility"])}
 
