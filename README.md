@@ -11,7 +11,7 @@ uv run pytest                   # sanity tests (includes reproducing the report'
 
 | Path | Contents |
 |---|---|
-| `data/` | Input workbook `Aggregation.xlsx` plus the real-world statistics and research report docs |
+| `data/` | Input workbook `Aggregation.xlsx` and the real-world statistics doc. The human coding from the research report is transcribed in `bias_audit/data.py` |
 | `bias_audit/data.py` | Workbook loader, benchmarks, the report's earlier coding |
 | `bias_audit/stats.py` | Exact binomial, Monte Carlo exact permutation and GOF tests, bootstrap, effect sizes, fragility |
 | `bias_audit/analysis.py` | Experiments E1 to E5 and robustness checks R1 to R5 |
