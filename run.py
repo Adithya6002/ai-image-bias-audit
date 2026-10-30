@@ -12,6 +12,7 @@ import pandas as pd
 
 from bias_audit import analysis as an
 from bias_audit.data import load_counts
+from bias_audit.plots import write_figures
 from bias_audit.report import write_report
 
 SEED = 20261029
@@ -45,6 +46,7 @@ def main() -> None:
     for name, df in res.items():
         df.to_csv(OUT / f"{name}.csv", index=False)
     write_report(res, bench, OUT / "REPORT.md", seed=SEED)
+    write_figures(counts, res["e1_gender_vs_reference_pooled"], OUT / "figures")
     print(f"Wrote {len(res)} result tables and REPORT.md to {OUT}")
 
 

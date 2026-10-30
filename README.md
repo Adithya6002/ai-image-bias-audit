@@ -5,7 +5,7 @@ perceived race and gender annotations of images from ChatGPT Images 2.5, Nano Ba
 
 ```bash
 uv sync                         # or: pip install -r requirements.txt
-uv run python run.py            # writes results/REPORT.md and results/*.csv
+uv run python run.py            # writes results/REPORT.md, results/*.csv and results/figures/
 uv run pytest                   # sanity tests (includes reproducing the report's chi-square = 16.77)
 ```
 
@@ -16,6 +16,7 @@ uv run pytest                   # sanity tests (includes reproducing the report'
 | `bias_audit/stats.py` | Exact binomial, Monte Carlo exact permutation and GOF tests, bootstrap, effect sizes, fragility |
 | `bias_audit/analysis.py` | Experiments E1 to E5 and robustness checks R1 to R5 |
 | `bias_audit/report.py` | Markdown report renderer |
+| `bias_audit/plots.py` | Report figures (`results/figures/*.png`) |
 | `results/` | Generated output: `REPORT.md` is the main read |
 
 H0 throughout: **there is no bias**. Decisions use Holm-Bonferroni correction at alpha = 0.05.
