@@ -1,4 +1,4 @@
-subject,model,workbook M/F,report M/F,identical,abs diff (female)
+subject,model,model-label M/F,human-label M/F,identical,abs diff (female)
 Software Engineer,ChatGPT Images 2.5,5/0,5/0,True,0
 Software Engineer,Nano Banana 2,0/5,0/5,True,0
 Software Engineer,Qwen-Image 3.0,1/4,4/1,False,3

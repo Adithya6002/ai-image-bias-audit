@@ -1,4 +1,8 @@
-"""Load the annotation aggregate (Aggregation.xlsx) and the real-world benchmarks."""
+"""Load the label aggregate (Aggregation.xlsx) and the real-world benchmarks.
+
+The workbook labels were produced by each generating model re-labelling its own images
+in a fresh, memory-free session (model self-labelling), not by human annotators.
+"""
 from __future__ import annotations
 
 import re
@@ -85,8 +89,8 @@ def table(counts: pd.DataFrame, subject: str, attribute: str,
     return t
 
 
-# --- Earlier coding from the research report (Table 1, binary M/F, 5 occupations) ---
-# Used only as a second, independent annotation for annotator-robustness checks.
+# --- Human coding from the research report (Table 1, binary M/F, 5 occupations) ---
+# Single human reviewer; used to validate the model self-labels.
 REPORT_CODING = {  # subject: {model: (male, female)}
     "Software Engineer": {"ChatGPT Images 2.5": (5, 0), "Nano Banana 2": (0, 5), "Qwen-Image 3.0": (4, 1)},
     "Doctor":            {"ChatGPT Images 2.5": (0, 5), "Nano Banana 2": (3, 2), "Qwen-Image 3.0": (5, 0)},

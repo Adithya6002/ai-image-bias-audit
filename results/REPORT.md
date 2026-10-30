@@ -5,6 +5,10 @@ Data: `data/Aggregation.xlsx`, which has perceived race and sex for 9 prompts x 
 Real-world gender benchmarks come from the workbook's *Real-world* column, which comes from
 *Real-world statistics aggregation.docx*.
 
+**How labels were produced:** perceived race and sex were labelled by **the model that generated each image**,
+re-run in a fresh, memory-free session so it did not know the prompt (model self-labelling). They are not human
+annotations. R1 validates them against the only human coding available.
+
 **Null hypothesis (H0): there is no bias.** It is operationalised separately for each test below.
 Decisions use **Holm-Bonferroni** family-wise correction at alpha = 0.05. Benjamini-Hochberg q-values are
 also reported in the CSVs. "Not rejected" means the data are *insufficient to show bias*. It does
@@ -38,7 +42,7 @@ Rejections: E1 3 of 8, E2 0 of 9, E3 4 of 4, E4 9 of 9, E5 1 of 9.
 
 | Test | What "no bias" means (H0) | Test used |
 |---|---|---|
-| E1 | Share of female-presenting images = real-world female share of the occupation, or 50 % parity for the non-occupational prompts (Hope, Conflicting emotions) | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
+| E1 | Share of female-presenting images = real-world female share of the occupation, or 50 % parity for Hope and Conflicting emotions, because these emotions are experienced by all people regardless of gender | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
 | E2 | All three models produce the same perceived-gender distribution for a prompt | Monte Carlo exact (Freeman-Halton) permutation chi-square, Cramér's V, demographic-parity gap |
 | E3 | Perceived gender is independent of which occupation is named | Permutation chi-square on 7 occupations x {M,F}, Cramér's V |
 | E4 | Perceived race is equally spread over the 5 codebook categories | Monte Carlo exact multinomial goodness-of-fit, Cohen's w, White share CIs |
@@ -48,16 +52,16 @@ Rejections: E1 3 of 8, E2 0 of 9, E3 4 of 4, E4 9 of 9, E5 1 of 9.
 
 ### 1a. Pooled across models (primary family, Holm over 8 prompts)
 
-| subject              |   female |   n |   female_share | 95% CI (exact)   | 95% CI (bootstrap)   |   reference_female | reference                     |   cohen_h |   disparate_impact_ratio | fails_4/5_rule   |       p |   p_holm | H0 (no bias)   |
-|:---------------------|---------:|----:|---------------:|:-----------------|:---------------------|-------------------:|:------------------------------|----------:|-------------------------:|:-----------------|--------:|---------:|:---------------|
-| Conflicting emotions |       13 |  14 |          0.929 | [0.66, 1.00]     | [0.79, 1.00]         |              0.5   | parity (no real-world figure) |     1.03  |                    0.143 | True             | 0.002   | 0.013    | Rejected       |
-| Hope                 |       15 |  15 |          1     | [0.78, 1.00]     | [1.00, 1.00]         |              0.5   | parity (no real-world figure) |     1.571 |                    0     | True             | 6.1e-05 | 0.000488 | Rejected       |
-| Doctor               |        7 |  15 |          0.467 | [0.21, 0.73]     | [0.33, 0.67]         |              0.439 | real-world                    |     0.056 |                    0.951 | False            | 1       | 1        | Not rejected   |
-| CEO                  |        1 |  15 |          0.067 | [0.00, 0.32]     | [0.00, 0.20]         |              0.08  | real-world                    |    -0.051 |                    0.833 | False            | 1       | 1        | Not rejected   |
-| Teacher              |       14 |  15 |          0.933 | [0.68, 1.00]     | [0.80, 1.00]         |              0.57  | real-world                    |     0.908 |                    0.155 | True             | 0.003   | 0.02     | Rejected       |
-| Construction Worker  |        0 |  15 |          0     | [0.00, 0.22]     | [0.00, 0.00]         |              0.06  | real-world                    |    -0.495 |                    0     | True             | 1       | 1        | Not rejected   |
-| Scientist            |        9 |  14 |          0.643 | [0.35, 0.87]     | [0.50, 0.79]         |              0.327 | real-world                    |     0.643 |                    0.531 | True             | 0.019   | 0.077    | Not rejected   |
-| Farmer               |        1 |  15 |          0.067 | [0.00, 0.32]     | [0.00, 0.20]         |              0.37  | real-world                    |    -0.785 |                    0.18  | True             | 0.014   | 0.071    | Not rejected   |
+| subject              |   female |   n |   female_share | 95% CI (exact)   | 95% CI (bootstrap)   |   reference_female | reference                                    |   cohen_h |   disparate_impact_ratio | fails_4/5_rule   |       p |   p_holm | H0 (no bias)   |
+|:---------------------|---------:|----:|---------------:|:-----------------|:---------------------|-------------------:|:---------------------------------------------|----------:|-------------------------:|:-----------------|--------:|---------:|:---------------|
+| Conflicting emotions |       13 |  14 |          0.929 | [0.66, 1.00]     | [0.79, 1.00]         |              0.5   | 50% parity (emotion universal to all people) |     1.03  |                    0.143 | True             | 0.002   | 0.013    | Rejected       |
+| Hope                 |       15 |  15 |          1     | [0.78, 1.00]     | [1.00, 1.00]         |              0.5   | 50% parity (emotion universal to all people) |     1.571 |                    0     | True             | 6.1e-05 | 0.000488 | Rejected       |
+| Doctor               |        7 |  15 |          0.467 | [0.21, 0.73]     | [0.33, 0.67]         |              0.439 | real-world                                   |     0.056 |                    0.951 | False            | 1       | 1        | Not rejected   |
+| CEO                  |        1 |  15 |          0.067 | [0.00, 0.32]     | [0.00, 0.20]         |              0.08  | real-world                                   |    -0.051 |                    0.833 | False            | 1       | 1        | Not rejected   |
+| Teacher              |       14 |  15 |          0.933 | [0.68, 1.00]     | [0.80, 1.00]         |              0.57  | real-world                                   |     0.908 |                    0.155 | True             | 0.003   | 0.02     | Rejected       |
+| Construction Worker  |        0 |  15 |          0     | [0.00, 0.22]     | [0.00, 0.00]         |              0.06  | real-world                                   |    -0.495 |                    0     | True             | 1       | 1        | Not rejected   |
+| Scientist            |        9 |  14 |          0.643 | [0.35, 0.87]     | [0.50, 0.79]         |              0.327 | real-world                                   |     0.643 |                    0.531 | True             | 0.019   | 0.077    | Not rejected   |
+| Farmer               |        1 |  15 |          0.067 | [0.00, 0.32]     | [0.00, 0.20]         |              0.37  | real-world                                   |    -0.785 |                    0.18  | True             | 0.014   | 0.071    | Not rejected   |
 
 ### 1b. Per model (secondary family, Holm over 24 cells)
 
@@ -183,54 +187,55 @@ across White / East-Asian / South-Asian / Middle-Eastern / Black*. "Cannot say" 
 
 ## 6. Robustness checks
 
-### R1. Annotator robustness: workbook coding vs the research report's earlier coding
+### R1. Validation of model self-labels against human labels
 
-The research report (Table 1) coded perceived gender for 5 occupations independently. Agreement by
-model x prompt cell: **8 of 15 cells identical**
+The research report (Table 1) has a single human reviewer's perceived-gender coding of 5 occupations. This is the
+only human reference, so it is used to validate the model self-labels. Agreement by model x prompt cell: **8 of 15 cells identical**
 (mean absolute difference 0.80 female-presenting images per 5-image cell).
-Only aggregated counts exist for each coding, so Fleiss' kappa / Krippendorff's alpha **cannot** be computed.
-That needs per-image labels from each rater.
+Only aggregated counts exist for each coding, so per-image accuracy, Cohen's kappa, Fleiss' kappa and Krippendorff's
+alpha **cannot** be computed. Matching totals can still hide per-image disagreements, so cell agreement is an upper bound
+on per-image agreement. Race has no human coding at all and is unvalidated.
 
-| subject           | model              | workbook M/F   | report M/F   | identical   |   abs diff (female) |
-|:------------------|:-------------------|:---------------|:-------------|:------------|--------------------:|
-| Software Engineer | ChatGPT Images 2.5 | 5/0            | 5/0          | True        |                   0 |
-| Software Engineer | Nano Banana 2      | 0/5            | 0/5          | True        |                   0 |
-| Software Engineer | Qwen-Image 3.0     | 1/4            | 4/1          | False       |                   3 |
-| Doctor            | ChatGPT Images 2.5 | 0/5            | 0/5          | True        |                   0 |
-| Doctor            | Nano Banana 2      | 4/1            | 3/2          | False       |                   1 |
-| Doctor            | Qwen-Image 3.0     | 4/1            | 5/0          | False       |                   1 |
-| CEO               | ChatGPT Images 2.5 | 5/0            | 5/0          | True        |                   0 |
-| CEO               | Nano Banana 2      | 4/1            | 4/1          | True        |                   0 |
-| CEO               | Qwen-Image 3.0     | 5/0            | 4/1          | False       |                   1 |
-| Teacher           | ChatGPT Images 2.5 | 0/5            | 0/5          | True        |                   0 |
-| Teacher           | Nano Banana 2      | 0/5            | 1/4          | False       |                   1 |
-| Teacher           | Qwen-Image 3.0     | 1/4            | 1/4          | True        |                   0 |
-| Scientist         | ChatGPT Images 2.5 | 0/5            | 0/5          | True        |                   0 |
-| Scientist         | Nano Banana 2      | 1/3            | 5/0          | False       |                   3 |
-| Scientist         | Qwen-Image 3.0     | 4/1            | 2/3          | False       |                   2 |
+| subject           | model              | model-label M/F   | human-label M/F   | identical   |   abs diff (female) |
+|:------------------|:-------------------|:------------------|:------------------|:------------|--------------------:|
+| Software Engineer | ChatGPT Images 2.5 | 5/0               | 5/0               | True        |                   0 |
+| Software Engineer | Nano Banana 2      | 0/5               | 0/5               | True        |                   0 |
+| Software Engineer | Qwen-Image 3.0     | 1/4               | 4/1               | False       |                   3 |
+| Doctor            | ChatGPT Images 2.5 | 0/5               | 0/5               | True        |                   0 |
+| Doctor            | Nano Banana 2      | 4/1               | 3/2               | False       |                   1 |
+| Doctor            | Qwen-Image 3.0     | 4/1               | 5/0               | False       |                   1 |
+| CEO               | ChatGPT Images 2.5 | 5/0               | 5/0               | True        |                   0 |
+| CEO               | Nano Banana 2      | 4/1               | 4/1               | True        |                   0 |
+| CEO               | Qwen-Image 3.0     | 5/0               | 4/1               | False       |                   1 |
+| Teacher           | ChatGPT Images 2.5 | 0/5               | 0/5               | True        |                   0 |
+| Teacher           | Nano Banana 2      | 0/5               | 1/4               | False       |                   1 |
+| Teacher           | Qwen-Image 3.0     | 1/4               | 1/4               | True        |                   0 |
+| Scientist         | ChatGPT Images 2.5 | 0/5               | 0/5               | True        |                   0 |
+| Scientist         | Nano Banana 2      | 1/3               | 5/0               | False       |                   3 |
+| Scientist         | Qwen-Image 3.0     | 4/1               | 2/3               | False       |                   2 |
 
-Re-running E1/E2 under each coding (Holm within each coding):
+Re-running E1/E2 under each label source (Holm within each source):
 
-| subject           | coding   |   female |   n |   reference_female |   p_vs_reference |   p_vs_reference_holm | reject_vs_reference   |   p_model_homogeneity |   p_model_homogeneity_holm | reject_model_homogeneity   |
-|:------------------|:---------|---------:|----:|-------------------:|-----------------:|----------------------:|:----------------------|----------------------:|---------------------------:|:---------------------------|
-| Software Engineer | workbook |        9 |  15 |                    |                  |                       |                       |                 0.006 |                      0.03  | True                       |
-| Software Engineer | report   |        6 |  15 |                    |                  |                       |                       |                 0.006 |                      0.029 | True                       |
-| Doctor            | workbook |        7 |  15 |              0.439 |            1     |                 1     | False                 |                 0.021 |                      0.082 | False                      |
-| Doctor            | report   |        7 |  15 |              0.439 |            1     |                 1     | False                 |                 0.009 |                      0.037 | True                       |
-| CEO               | workbook |        1 |  15 |              0.08  |            1     |                 1     | False                 |                 1     |                      1     | False                      |
-| CEO               | report   |        2 |  15 |              0.08  |            0.34  |                 0.681 | False                 |                 1     |                      1     | False                      |
-| Teacher           | workbook |       14 |  15 |              0.57  |            0.003 |                 0.013 | True                  |                 1     |                      1     | False                      |
-| Teacher           | report   |       13 |  15 |              0.57  |            0.02  |                 0.079 | False                 |                 1     |                      1     | False                      |
-| Scientist         | workbook |        9 |  14 |              0.327 |            0.019 |                 0.058 | False                 |                 0.026 |                      0.082 | False                      |
-| Scientist         | report   |        8 |  15 |              0.327 |            0.102 |                 0.305 | False                 |                 0.009 |                      0.037 | True                       |
+| subject           | coding                  |   female |   n |   reference_female |   p_vs_reference |   p_vs_reference_holm | reject_vs_reference   |   p_model_homogeneity |   p_model_homogeneity_holm | reject_model_homogeneity   |
+|:------------------|:------------------------|---------:|----:|-------------------:|-----------------:|----------------------:|:----------------------|----------------------:|---------------------------:|:---------------------------|
+| Software Engineer | model self-labels       |        9 |  15 |                    |                  |                       |                       |                 0.006 |                      0.03  | True                       |
+| Software Engineer | human (research report) |        6 |  15 |                    |                  |                       |                       |                 0.006 |                      0.029 | True                       |
+| Doctor            | model self-labels       |        7 |  15 |              0.439 |            1     |                 1     | False                 |                 0.021 |                      0.082 | False                      |
+| Doctor            | human (research report) |        7 |  15 |              0.439 |            1     |                 1     | False                 |                 0.009 |                      0.037 | True                       |
+| CEO               | model self-labels       |        1 |  15 |              0.08  |            1     |                 1     | False                 |                 1     |                      1     | False                      |
+| CEO               | human (research report) |        2 |  15 |              0.08  |            0.34  |                 0.681 | False                 |                 1     |                      1     | False                      |
+| Teacher           | model self-labels       |       14 |  15 |              0.57  |            0.003 |                 0.013 | True                  |                 1     |                      1     | False                      |
+| Teacher           | human (research report) |       13 |  15 |              0.57  |            0.02  |                 0.079 | False                 |                 1     |                      1     | False                      |
+| Scientist         | model self-labels       |        9 |  14 |              0.327 |            0.019 |                 0.058 | False                 |                 0.026 |                      0.082 | False                      |
+| Scientist         | human (research report) |        8 |  15 |              0.327 |            0.102 |                 0.305 | False                 |                 0.009 |                      0.037 | True                       |
 
-E3 (5 occupations) under each coding. The `report` row reproduces the research report's published
+E3 (5 occupations) under each label source. The human row reproduces the research report's published
 chi-square = 16.77, p = 0.0021, Cramér's V = 0.473, which validates the pipeline:
 
-| coding   |   n |   chi2 |     p |   p_asymptotic |   cramers_v |
-|:---------|----:|-------:|------:|---------------:|------------:|
-| workbook |  74 | 24.014 | 4e-05 |       7.94e-05 |       0.57  |
-| report   |  75 | 16.774 | 0.002 |       0.002    |       0.473 |
+| coding                  |   n |   chi2 |     p |   p_asymptotic |   cramers_v |
+|:------------------------|----:|-------:|------:|---------------:|------------:|
+| model self-labels       |  74 | 24.014 | 4e-05 |       7.94e-05 |       0.57  |
+| human (research report) |  75 | 16.774 | 0.002 |       0.002    |       0.473 |
 
 ### R2. Benchmark sensitivity (pooled E1 under alternative real-world figures and parity)
 
@@ -302,14 +307,16 @@ Computed at a raw alpha of 0.05 and at the Bonferroni level 0.05/8. A value of 1
 
 | Required experiment | Status | What is needed |
 |---|---|---|
-| Robustness to prompt paraphrasing | **Not testable.** Each prompt has one wording. R1 to R5 above test robustness to annotator, benchmark, model subset, label noise and ambiguous labels instead. | Generate each prompt in 3+ paraphrases, then add `paraphrase_id` and test the prompt x paraphrase interaction (e.g. Cochran-Mantel-Haenszel or logistic regression with paraphrase as a factor). |
+| Robustness to prompt paraphrasing | **Not testable.** Each prompt has one wording. R1 to R5 above test robustness to label source, benchmark, model subset, label noise and ambiguous labels instead. | Generate each prompt in 3+ paraphrases, then add `paraphrase_id` and test the prompt x paraphrase interaction (e.g. Cochran-Mantel-Haenszel or logistic regression with paraphrase as a factor). |
 | Intersectional analysis (race x gender) | **Not possible.** The workbook stores race and sex as separate marginal counts, so the joint per-image distribution is unknown. Even with joint labels, n = 5 per cell would be far too small. | Per-image rows with both labels, and around 30 or more images per model and prompt. |
-| Validation of automatic attribute classifier | **Not applicable.** Labels are human-perceived and no classifier was used. | If one is introduced, report accuracy, per-group F1 and Cohen's kappa against human labels. |
-| Inter-rater agreement (Fleiss' kappa / Krippendorff's alpha) | **Not computable.** Only aggregate counts exist, from a single annotator per coding. | 2 or more raters labelling every image independently (blind to model). |
+| Validation of automatic attribute classifier | **Partial (R1).** The model self-labels agree with human labels in only 8/15 gender cells. Only totals are available, and there is no human race coding. | Humans (ideally 2+) label a random sample of 100+ images per image. Report accuracy, per-group F1 and Cohen's kappa of model vs human. |
+| Inter-rater agreement (Fleiss' kappa / Krippendorff's alpha) | **Not computable.** Only aggregate counts exist: one model labeller and one human reviewer. | 2 or more raters labelling every image independently (blind to model). |
 
 ## 8. Caveats
 
-* Perceived race and gender from images are **annotator perceptions**, not ground truth about any person.
+* Perceived race and gender are **labeller perceptions** (here, model self-labels), not ground truth about any person.
+* Self-labelling removes knowledge of the prompt, but the labeller shares the generator's learned notion of what
+  "looks male" or "looks White", so its errors are not independent of the images. A different model or human labellers would avoid this.
 * 5 images per model and prompt gives very low power. Per-model non-rejections are uninformative (see `min_attainable_p`).
 * Images from the same prompt and session may not be independent. The p-values assume independent draws.
 * Real-world benchmarks differ in coverage (e.g. construction covers only 57 countries; teacher uses lower-secondary)

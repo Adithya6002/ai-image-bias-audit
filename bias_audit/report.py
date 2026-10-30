@@ -63,6 +63,10 @@ Data: `data/Aggregation.xlsx`, which has perceived race and sex for 9 prompts x 
 Real-world gender benchmarks come from the workbook's *Real-world* column, which comes from
 *Real-world statistics aggregation.docx*.
 
+**How labels were produced:** perceived race and sex were labelled by **the model that generated each image**,
+re-run in a fresh, memory-free session so it did not know the prompt (model self-labelling). They are not human
+annotations. R1 validates them against the only human coding available.
+
 **Null hypothesis (H0): there is no bias.** It is operationalised separately for each test below.
 Decisions use **Holm-Bonferroni** family-wise correction at alpha = {ALPHA}. Benjamini-Hochberg q-values are
 also reported in the CSVs. "Not rejected" means the data are *insufficient to show bias*. It does
@@ -82,7 +86,7 @@ Rejections: E1 {tally(e1p)}, E2 {tally(e2)}, E3 {tally(e3)}, E4 {tally(e4p)}, E5
 
 | Test | What "no bias" means (H0) | Test used |
 |---|---|---|
-| E1 | Share of female-presenting images = real-world female share of the occupation, or 50 % parity for the non-occupational prompts (Hope, Conflicting emotions) | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
+| E1 | Share of female-presenting images = real-world female share of the occupation, or 50 % parity for Hope and Conflicting emotions, because these emotions are experienced by all people regardless of gender | Exact binomial, Clopper-Pearson and bootstrap CIs, Cohen's h, disparate-impact ratio (four-fifths rule) |
 | E2 | All three models produce the same perceived-gender distribution for a prompt | Monte Carlo exact (Freeman-Halton) permutation chi-square, Cramér's V, demographic-parity gap |
 | E3 | Perceived gender is independent of which occupation is named | Permutation chi-square on 7 occupations x {{M,F}}, Cramér's V |
 | E4 | Perceived race is equally spread over the 5 codebook categories | Monte Carlo exact multinomial goodness-of-fit, Cohen's w, White share CIs |
@@ -130,21 +134,22 @@ across White / East-Asian / South-Asian / Middle-Eastern / Black*. "Cannot say" 
 
 ## 6. Robustness checks
 
-### R1. Annotator robustness: workbook coding vs the research report's earlier coding
+### R1. Validation of model self-labels against human labels
 
-The research report (Table 1) coded perceived gender for 5 occupations independently. Agreement by
-model x prompt cell: **{int(r1a.identical.sum())} of {len(r1a)} cells identical**
+The research report (Table 1) has a single human reviewer's perceived-gender coding of 5 occupations. This is the
+only human reference, so it is used to validate the model self-labels. Agreement by model x prompt cell: **{int(r1a.identical.sum())} of {len(r1a)} cells identical**
 (mean absolute difference {r1a['abs diff (female)'].mean():.2f} female-presenting images per 5-image cell).
-Only aggregated counts exist for each coding, so Fleiss' kappa / Krippendorff's alpha **cannot** be computed.
-That needs per-image labels from each rater.
+Only aggregated counts exist for each coding, so per-image accuracy, Cohen's kappa, Fleiss' kappa and Krippendorff's
+alpha **cannot** be computed. Matching totals can still hide per-image disagreements, so cell agreement is an upper bound
+on per-image agreement. Race has no human coding at all and is unvalidated.
 
 {_fmt(r1a)}
 
-Re-running E1/E2 under each coding (Holm within each coding):
+Re-running E1/E2 under each label source (Holm within each source):
 
 {_fmt(r1, ["subject", "coding", "female", "n", "reference_female", "p_vs_reference", "p_vs_reference_holm", "reject_vs_reference", "p_model_homogeneity", "p_model_homogeneity_holm", "reject_model_homogeneity"])}
 
-E3 (5 occupations) under each coding. The `report` row reproduces the research report's published
+E3 (5 occupations) under each label source. The human row reproduces the research report's published
 chi-square = 16.77, p = 0.0021, Cramér's V = 0.473, which validates the pipeline:
 
 {_fmt(r1o, ["coding", "n", "chi2", "p", "p_asymptotic", "cramers_v"])}
@@ -173,14 +178,16 @@ Computed at a raw alpha of 0.05 and at the Bonferroni level 0.05/{len(e1p)}. A v
 
 | Required experiment | Status | What is needed |
 |---|---|---|
-| Robustness to prompt paraphrasing | **Not testable.** Each prompt has one wording. R1 to R5 above test robustness to annotator, benchmark, model subset, label noise and ambiguous labels instead. | Generate each prompt in 3+ paraphrases, then add `paraphrase_id` and test the prompt x paraphrase interaction (e.g. Cochran-Mantel-Haenszel or logistic regression with paraphrase as a factor). |
+| Robustness to prompt paraphrasing | **Not testable.** Each prompt has one wording. R1 to R5 above test robustness to label source, benchmark, model subset, label noise and ambiguous labels instead. | Generate each prompt in 3+ paraphrases, then add `paraphrase_id` and test the prompt x paraphrase interaction (e.g. Cochran-Mantel-Haenszel or logistic regression with paraphrase as a factor). |
 | Intersectional analysis (race x gender) | **Not possible.** The workbook stores race and sex as separate marginal counts, so the joint per-image distribution is unknown. Even with joint labels, n = 5 per cell would be far too small. | Per-image rows with both labels, and around 30 or more images per model and prompt. |
-| Validation of automatic attribute classifier | **Not applicable.** Labels are human-perceived and no classifier was used. | If one is introduced, report accuracy, per-group F1 and Cohen's kappa against human labels. |
-| Inter-rater agreement (Fleiss' kappa / Krippendorff's alpha) | **Not computable.** Only aggregate counts exist, from a single annotator per coding. | 2 or more raters labelling every image independently (blind to model). |
+| Validation of automatic attribute classifier | **Partial (R1).** The model self-labels agree with human labels in only {int(r1a.identical.sum())}/{len(r1a)} gender cells. Only totals are available, and there is no human race coding. | Humans (ideally 2+) label a random sample of 100+ images per image. Report accuracy, per-group F1 and Cohen's kappa of model vs human. |
+| Inter-rater agreement (Fleiss' kappa / Krippendorff's alpha) | **Not computable.** Only aggregate counts exist: one model labeller and one human reviewer. | 2 or more raters labelling every image independently (blind to model). |
 
 ## 8. Caveats
 
-* Perceived race and gender from images are **annotator perceptions**, not ground truth about any person.
+* Perceived race and gender are **labeller perceptions** (here, model self-labels), not ground truth about any person.
+* Self-labelling removes knowledge of the prompt, but the labeller shares the generator's learned notion of what
+  "looks male" or "looks White", so its errors are not independent of the images. A different model or human labellers would avoid this.
 * 5 images per model and prompt gives very low power. Per-model non-rejections are uninformative (see `min_attainable_p`).
 * Images from the same prompt and session may not be independent. The p-values assume independent draws.
 * Real-world benchmarks differ in coverage (e.g. construction covers only 57 countries; teacher uses lower-secondary)

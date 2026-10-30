@@ -4,7 +4,7 @@ Runs the *required experiments* of Track C (Bias, Fairness and Sociotechnical Au
 perceived race and gender annotations of images from ChatGPT Images 2.5, Nano Banana 2 and Qwen-Image 3.0.
 
 ```bash
-uv sync
+uv sync                         # or: pip install -r requirements.txt
 uv run python run.py            # writes results/REPORT.md and results/*.csv
 uv run pytest                   # sanity tests (includes reproducing the report's chi-square = 16.77)
 ```

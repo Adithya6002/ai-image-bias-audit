@@ -11,6 +11,8 @@ from .data import (BENCHMARK_ALTERNATIVES, MODELS, RACE_CATEGORIES, REPORT_CODIN
                    subjects, table)
 
 ALPHA = 0.05
+MODEL_LABELS = "model self-labels"
+HUMAN_LABELS = "human (research report)"
 POOLED = "Pooled (all 3 models)"
 OCCUPATIONS = ["Software Engineer", "Doctor", "CEO", "Teacher",
                "Construction Worker", "Scientist", "Farmer"]
@@ -35,7 +37,7 @@ def _gender_reference(subject: str, bench: pd.DataFrame) -> tuple[float, str] | 
         return None
     row = bench[bench.subject == subject]
     if row.empty:
-        return 0.5, "parity (no real-world figure)"
+        return 0.5, "50% parity (emotion universal to all people)"
     return float(row.female_share.iloc[0]), "real-world"
 
 
@@ -169,7 +171,7 @@ def race_vs_uniform(counts, rng) -> tuple[pd.DataFrame, pd.DataFrame]:
 # ---------- Robustness ----------
 
 def annotator_robustness(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Re-run the gender tests on the research report's independent coding of 5 occupations."""
+    """Validate the model self-labels against the research report's human coding (5 occupations)."""
     occs = list(REPORT_CODING)
     agree = []
     for occ in occs:
@@ -177,16 +179,16 @@ def annotator_robustness(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame
         for m in MODELS:
             a = (int(t.loc[m, "Male"]), int(t.loc[m, "Female"]))
             b = REPORT_CODING[occ][m]
-            agree.append({"subject": occ, "model": m, "workbook M/F": f"{a[0]}/{a[1]}",
-                          "report M/F": f"{b[0]}/{b[1]}", "identical": a == b,
+            agree.append({"subject": occ, "model": m, "model-label M/F": f"{a[0]}/{a[1]}",
+                          "human-label M/F": f"{b[0]}/{b[1]}", "identical": a == b,
                           "abs diff (female)": abs(a[1] - b[1])})
     agree = pd.DataFrame(agree)
 
     rows = []
     for occ in occs:
         ref = (_gender_reference(occ, bench) or (np.nan, ""))[0]
-        for source in ("workbook", "report"):
-            if source == "workbook":
+        for source in (MODEL_LABELS, HUMAN_LABELS):
+            if source == MODEL_LABELS:
                 t = _binary_sex(counts, occ)
                 k, n = t["Female"].to_numpy(), t.sum(1).to_numpy()
                 mtab = t.to_numpy()
@@ -200,7 +202,7 @@ def annotator_robustness(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame
                          "p_model_homogeneity": p_h})
     df = pd.DataFrame(rows)
     for col in ("p_vs_reference", "p_model_homogeneity"):
-        for source in ("workbook", "report"):
+        for source in (MODEL_LABELS, HUMAN_LABELS):
             mask = (df.coding == source) & df[col].notna()
             df.loc[mask, col + "_holm"] = st.adjust(df.loc[mask, col], "holm")
     for col in ("p_vs_reference", "p_model_homogeneity"):
@@ -209,7 +211,7 @@ def annotator_robustness(counts, bench, rng) -> tuple[pd.DataFrame, pd.DataFrame
 
     occ_wb = occupation_gender_association(counts, rng, occupations=occs).iloc[[0]]
     occ_rep = occupation_gender_association(counts, rng, coding=REPORT_CODING, occupations=occs).iloc[[0]]
-    occ = pd.concat([occ_wb.assign(coding="workbook"), occ_rep.assign(coding="report")])
+    occ = pd.concat([occ_wb.assign(coding=MODEL_LABELS), occ_rep.assign(coding=HUMAN_LABELS)])
     return agree, df, occ
 
 
